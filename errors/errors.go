@@ -1,4 +1,4 @@
-package utility
+package errors
 
 type NotFoundError struct {
 	Message    string
@@ -6,7 +6,7 @@ type NotFoundError struct {
 }
 
 func (n NotFoundError) Error() string {
-	panic("Item Not Found")
+	panic("Item Not Found" + n.Message)
 }
 
 type ForbiddenError struct {
@@ -15,5 +15,5 @@ type ForbiddenError struct {
 }
 
 func (f ForbiddenError) Error() string {
-	panic("Not Allowed")
+	panic("Not Allowed" + f.Message)
 }
