@@ -1,14 +1,21 @@
 package application
 
 import (
-	"fmt"
 	"git.jfrog.info/kanishkg/inventory-management/errors"
 	"git.jfrog.info/kanishkg/inventory-management/item"
 	"git.jfrog.info/kanishkg/inventory-management/store"
+	"github.com/gin-gonic/gin"
 	"sort"
 )
 
-func Application() {
+var router = gin.Default()
+
+func Run() {
+	application()
+	router.Run(":8090")
+}
+
+func application() {
 	bookStore := item.BookStore{
 		Books: make(map[string]*item.Book),
 	}
@@ -16,40 +23,44 @@ func Application() {
 		Clothes: make(map[string]*item.Cloth),
 	}
 
-	seedData(&bookStore, &clothStore)
-
-	totalItems := getTotalItems(&bookStore, &clothStore)
-	fmt.Println("Items after insertion = ", totalItems)
-
-	if len(totalItems) > 0 {
-		err := bookStore.RemoveItem("Geography")
+	router.POST("items/books", func(context *gin.Context) {
+		bookToAdd := item.Book{}
+		err := context.BindJSON(&bookToAdd)
 		if err != nil {
-			panic(err)
+			return
 		}
-		fmt.Println("Updated list after removing element = ", getTotalItems(&bookStore, &clothStore))
-	}
+		addItem(&bookStore, bookToAdd)
+	})
+	router.POST("items/cloth", func(context *gin.Context) {
+		clothToAdd := item.Cloth{}
+		err := context.BindJSON(&clothToAdd)
+		if err != nil {
+			return
+		}
+		addItem(&clothStore, clothToAdd)
+	})
 
-	topItems := getTopItems(&bookStore, &clothStore)
-	fmt.Println("Top items = ", topItems)
-}
+	router.GET("/items", func(context *gin.Context) {
+		context.JSON(200, gin.H{
+			"items": getTotalItems(&bookStore, &clothStore),
+		})
+		context.Header("Content-type", "application/json")
+	})
 
-func seedData(bookCollection store.Store, clothCollection store.Store) {
-	bookItemHP := item.Book{Title: "Harry Potter", BaseItem: item.BaseItem{Price: 100.5, Quantity: 4, Category: 1}}
-	bookItemGeo := item.Book{Title: "Geography", BaseItem: item.BaseItem{Price: 50, Quantity: 10, Category: 2}}
-	bookItemHis := item.Book{Title: "History", BaseItem: item.BaseItem{Price: 40.3, Quantity: 25, Category: 2}}
-	bookItemLit := item.Book{Title: "Physics", BaseItem: item.BaseItem{Price: 50, Quantity: 12, Category: 3}}
+	router.DELETE("/items/:name", func(context *gin.Context) {
+		name := context.Param("name")
+		err := bookStore.RemoveItem(name)
+		if err != nil {
+			err.Error()
+		}
+	})
 
-	clothItemWool := item.Cloth{Material: "Cotton", BaseItem: item.BaseItem{Price: 200.7, Quantity: 15, Category: 1}}
-	clothItemSilk := item.Cloth{Material: "Silk", BaseItem: item.BaseItem{Price: 100.7, Quantity: 20, Category: 2}}
-	clothItemNy := item.Cloth{Material: "Nylon", BaseItem: item.BaseItem{Price: 300.7, Quantity: 30, Category: 2}}
-
-	addItem(bookCollection, bookItemHP)
-	addItem(bookCollection, bookItemGeo)
-	addItem(bookCollection, bookItemHis)
-	addItem(bookCollection, bookItemLit)
-	addItem(clothCollection, clothItemWool)
-	addItem(clothCollection, clothItemSilk)
-	addItem(clothCollection, clothItemNy)
+	router.GET("/items/top", func(context *gin.Context) {
+		context.JSON(200, gin.H{
+			"items": getTopItems(&bookStore, &clothStore),
+		})
+		context.Header("Content-type", "application/json")
+	})
 }
 
 func addItem(collection store.Store, item item.Item) {

@@ -4,9 +4,9 @@ type Category int32
 
 type BaseItem struct {
 	id           string
-	Quantity     int64
-	Price        float32
-	Category     Category
+	Quantity     int64    `json:"quantity"`
+	Price        float32  `json:"price"`
+	Category     Category `json:"category"`
 	categoryName string
 }
 

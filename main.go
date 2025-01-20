@@ -11,5 +11,6 @@ func main() {
 			fmt.Println("Recovered from panic: ", r)
 		}
 	}()
-	application.Application()
+
+	application.Run()
 }

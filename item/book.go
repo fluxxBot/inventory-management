@@ -7,8 +7,8 @@ import (
 )
 
 type Book struct {
-	Title string
-	BaseItem
+	Title    string `json:"title"`
+	BaseItem `json:"baseItem"`
 }
 
 type BookStore struct {

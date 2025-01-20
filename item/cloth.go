@@ -7,7 +7,7 @@ import (
 )
 
 type Cloth struct {
-	Material string
+	Material string `json:"material"`
 	BaseItem
 }
 
